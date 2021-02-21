@@ -1,3 +1,6 @@
+“Data and Reproducibility of the Article Robust Model-Based Clustering”
+=======================================================================
+
 Summary
 -------
 
@@ -10,8 +13,19 @@ Yohai](https://scholar.google.com/citations?user=fBUfRqcAAAAJ&hl=en),
 and [Ruben H.
 Zamar](https://scholar.google.ca/citations?user=XgRp4HUAAAAJ&hl=en).
 
-The only thing you should do in order to reproduce the results is to
-download the repository and run in R
+Firstly, you should install the RMBC package from github, by typing
+
+    devtools::install_github("jdgonzalezwork/RMBC")
+
+where the package
+[`devtools`](https://cran.r-project.org/web/packages/devtools/index.html)
+must be previously installed.
+
+Once you have already installed the [RMBC
+package](https://github.com/jdgonzalezwork/RMBC/).
+
+The last thing you should do in order to reproduce the results is to
+download this repository and run in R
 
     source("Fig2_and_Table3.R")
 
@@ -35,6 +49,9 @@ This command will do the following steps
     -   `auxComputeClusters.R`
     -   `auxPlotGroupsModelBasedCluster.R`
     -   `performance_measures.R`
+
+Finally, if success, the program is suppose to reproduce figure 2 and
+table 3 from reference \[1\]
 
 **Reference**:  
 \[1\] Gonzalez, J. D., Maronna, R., Yohai, V. J., & Zamar, R. H. (2021).
