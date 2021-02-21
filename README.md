@@ -1,5 +1,5 @@
-“Data and Reproducibility of the Article Robust Model-Based Clustering”
-=======================================================================
+Data and Reproducibility of the Article Robust Model-Based Clustering
+=====================================================================
 
 Summary
 -------
@@ -22,9 +22,8 @@ where the package
 must be previously installed.
 
 Once you have already installed the [RMBC
-package](https://github.com/jdgonzalezwork/RMBC/).
-
-The last thing you should do in order to reproduce the results is to
+package](https://github.com/jdgonzalezwork/RMBC/),  
+the last thing you should do in order to reproduce the results is to
 download this repository and run in R
 
     source("Fig2_and_Table3.R")

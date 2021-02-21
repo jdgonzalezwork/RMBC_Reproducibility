@@ -9,7 +9,7 @@ output: md_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# "Data and Reproducibility of the Article Robust Model-Based Clustering"
+# Data and Reproducibility of the Article Robust Model-Based Clustering
 
 ## Summary
 
@@ -18,15 +18,13 @@ _Robust Model-Based_ Clustering whose authors are Juan D. Gonzalez, [Ricardo Mar
 [Victor J. Yohai](https://scholar.google.com/citations?user=fBUfRqcAAAAJ&hl=en), and [Ruben H. Zamar](https://scholar.google.ca/citations?user=XgRp4HUAAAAJ&hl=en). 
 
 Firstly, you should install the RMBC package from github, by typing  
-
 ``` {r eval= FALSE}
 devtools::install_github("jdgonzalezwork/RMBC")
 ``` 
 where the package [`devtools`](https://cran.r-project.org/web/packages/devtools/index.html) must be previously installed. 
 
-Once you have already installed the [RMBC package](https://github.com/jdgonzalezwork/RMBC/).  
-
-The last thing you should do in order to reproduce the results is to download 
+Once you have already installed the [RMBC package](https://github.com/jdgonzalezwork/RMBC/),  
+the last thing you should do in order to reproduce the results is to download 
 this repository and run in R
 
 ```{r eval= FALSE}
