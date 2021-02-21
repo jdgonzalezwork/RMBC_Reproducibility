@@ -55,4 +55,4 @@ table 3 from reference \[1\]
 **Reference**:  
 [\[1\] Gonzalez, J. D., Maronna, R., Yohai, V. J., & Zamar, R. H.
 (2021). Robust Model-Based Clustering. arXiv preprint
-arXiv:2102.06851.](https://arxiv.org/pdf/2102.06851.pdf)
+arXiv:2102.06851.](https://arxiv.org/pdf/2102.06851.pdf){:target="\_blank"}
