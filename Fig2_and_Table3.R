@@ -3,13 +3,13 @@
 ## and a .tex file whith table 3 of  the manuscript###### 
 #########################################################
 
-if (packages[i] %in% rownames(installed.packages())==FALSE){ 
-  install.packages(packages[i])}
-require(packages[i], character.only = TRUE)
+### Firstly, you should install the RMBC package 
+## following the instructions in 
+## https://github.com/jdgonzalezwork/RMBC
 
 ### Install and load other Packages
 packages=c("tclust","RSKC","GSE","otrimle","mclust","mvtnorm",
-           "ktaucenters","combinat"); 
+           "ktaucenters","combinat","testthat"); 
 for (i in 1:length(packages)){
   if (packages[i] %in% rownames(installed.packages())==FALSE){ 
     install.packages(packages[i])}

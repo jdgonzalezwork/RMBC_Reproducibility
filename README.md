@@ -22,7 +22,7 @@ where the package
 must be previously installed.
 
 Once you have already installed the [RMBC
-package](https://github.com/jdgonzalezwork/RMBC/),  
+package](https://github.com/jdgonzalezwork/RMBC/),
 the last thing you should do in order to reproduce the results is to
 download this repository and run in R
 
@@ -42,6 +42,7 @@ This command will do the following steps
     -   [`mvtnorm`](https://cran.r-project.org/web/packages/mvtnorm/index.html)
     -   [`ktaucenters`](https://cran.r-project.org/web/packages/ktaucenters/index.html)
     -   [`combinat`](https://cran.r-project.org/web/packages/combinat/index.html)
+    - [`testthat`](https://cran.r-project.org/web/packages/testthat/index.html)
 -   Run the auxiliary routines that aid to plot the results, compute
     performance measures and give to the different estimators the same
     format.
@@ -52,7 +53,7 @@ This command will do the following steps
 Finally, if success, the program is suppose to reproduce figure 2 and
 table 3 from reference \[1\]
 
-**Reference**:  
+**Reference**:
 [\[1\] Gonzalez, J. D., Maronna, R., Yohai, V. J., & Zamar, R. H.
 (2021). Robust Model-Based Clustering. arXiv preprint
 arXiv:2102.06851.](https://arxiv.org/pdf/2102.06851.pdf)
