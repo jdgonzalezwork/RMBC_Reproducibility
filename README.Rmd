@@ -28,7 +28,7 @@ the last thing you should do in order to reproduce the results is to download
 this repository and run in R
 
 ```{r eval= FALSE}
-source("Fig2_and_Table3.R")
+source("Fig2_and_Table4.R")
 ```
 This command will do the following steps
 
@@ -49,7 +49,7 @@ developed in [1] and contains the real data set used to asses our procedure.
   * `auxPlotGroupsModelBasedCluster.R`
   * `performance_measures.R`
 
-Finally, if success, the program is suppose to reproduce figure 2 and table 3 from reference [1] 
-  
+Finally, if success, the program is supposed to reproduce figure 2 and table 4 from reference [1]. 
+
 **Reference**:   
 [[1] Gonzalez, J. D., Maronna, R., Yohai, V. J., & Zamar, R. H. (2021). Robust Model-Based Clustering. arXiv preprint arXiv:2102.06851.](https://arxiv.org/pdf/2102.06851v2.pdf)

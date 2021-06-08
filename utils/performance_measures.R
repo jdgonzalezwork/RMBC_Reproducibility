@@ -1,39 +1,21 @@
-
-mcr=function(Y,theta.alpha,theta.mu,theta.sigma,actualAlpha,actualMu,actualSigma){
-  # misclassificationRate according coretto et al.  
-  actualk=length(actualAlpha); p = length(actualMu[[1]]); 
-  # computes True Index. 
-  estan1=is_in_gr(Y, cutoff=1-1e-4,theta.mu=actualMu,theta.sigma=actualSigma)
-  valoresDisc1=quad_disc(Y,theta.alpha=actualAlpha,theta.mu=actualMu,theta.sigma=actualSigma)
-  indicesTrue=apply(valoresDisc1,1,function(x) which(x==max(x))[1])
-  indicesTrue[!estan1]=0
-  # Computes estimation Index.
-  estan2=is_in_gr(Y, cutoff=1-1e-4,theta.mu=theta.mu,theta.sigma=theta.sigma)
-  valoresDisc2=quad_disc(Y,theta.alpha=theta.alpha,theta.mu=theta.mu,theta.sigma=theta.sigma)
-  indices2=apply(valoresDisc2,1,function(x) which(x==max(x))[1])
-  indices2[!estan2]=0
-  # This computes the "right" permutation 
-  theta1= matrix(unlist(actualMu),nrow=actualk,ncol=p,byrow =T)
-  theta2= matrix(unlist(theta.mu),nrow=actualk,ncol=p,byrow =T)
-  permut=HausdorffPermutation(theta1matrix =theta1, theta2matrix = theta2)$permutation
-
-  indices2Acomodado=indices2
-  for (j in 1:actualk){
-    indices2Acomodado[indices2==permut[j,2]]=permut[j,1]
-  }
-  mcrNew=(1-mean((indicesTrue[indicesTrue!=0]-indices2Acomodado[indicesTrue!=0])==0))*100
-  mcrNew
-}
-
+library(combinat)
 
 mcrComun=function(Y,theta.alpha,theta.mu,theta.sigma,actualMu,indicesTrue){
-  # common misclassificationRate.   
-  actualk=length(theta.alpha); p = length(actualMu[[1]]); 
+  # mcrComun: computes the misclassification Rate (in percentage %) by estimating the labels according 
+  # the closest centers of each group. The procedure is to find the labeling that achieve the Hausdorff  
+  # distance between the sets theta.mu and actualMu. 
+  
+  # Pros: is fast. 
+  # Cons: When the estimated centers are poorly determined  this function 
+  # can overestimate the "true" misclassification rate
+  actualk=length(theta.alpha); 
+  p = length(actualMu[[1]]); 
   # computes misclassificationRate 
   estan2=is_in_gr(Y, cutoff=1-1e-3,theta.mu=theta.mu,theta.sigma=theta.sigma)
   valoresDisc2=quad_disc(Y,theta.alpha=theta.alpha,theta.mu=theta.mu,theta.sigma=theta.sigma)
   indices2=apply(valoresDisc2,1,function(x) which(x==max(x))[1])
   indices2[!estan2]=0
+  
   # computes the "right" permutation
   theta1= matrix(unlist(actualMu),nrow=actualk,ncol=p,byrow =T)
   theta2= matrix(unlist(theta.mu),nrow=actualk,ncol=p,byrow =T)
@@ -46,8 +28,18 @@ mcrComun=function(Y,theta.alpha,theta.mu,theta.sigma,actualMu,indicesTrue){
   mcrNew
 }
 
-## mcr, including outlier  as classes. 
+## mcr, including outlier  as cluster. 
 mcr_agregando0=function(Y,theta.alpha,theta.mu,theta.sigma,actualMu,indicesTrue){
+  
+  # mcragregando00: computes the misclassification Rate (in percentage %) by permuting 
+  # all the labels, and then takes 
+  # the minumum among all case. The sufix agregando00  means that outliers are 
+  # added as a new cluster with label equal to zero 
+  # Pros:  Is exact. 
+  # Cons: could be very slow  or impracticable 
+  # when the number of clusters K is intermediate or high (say, K=10)
+  
+  
   actualk=length(theta.alpha); p = length(actualMu[[1]]); 
   #  Computes estimated index
   estan2=is_in_gr(Y, cutoff=1-1e-3,theta.mu=theta.mu,theta.sigma=theta.sigma)
@@ -56,27 +48,112 @@ mcr_agregando0=function(Y,theta.alpha,theta.mu,theta.sigma,actualMu,indicesTrue)
   indices2[!estan2]=0
   mcr_agregando00=MCRpermn(cluster1=indices2,clusterTrue=indicesTrue,actualk=actualk+1)$MCR*100
   mcr_agregando00
+}
+
+mcr_sinOutliers=function(Y,theta.alpha,theta.mu,theta.sigma,actualMu,indicesTrue){
+  #  computes the misclassification Rate (in percentage %) by permuting 
+  # all the labels, and then takes the minumum among all case. 
+  # The procedure is computed for the true observations, that is the algorithm
+  # only is computed for observations that have indicesTrue != 0
+  # Pros:  Is exact. 
+  # Cons: could be very slow  or impracticable 
+  # when the number of clusters K is intermediate or high (say, K=10)
+   actualk=length(theta.alpha); 
+   p = length(actualMu[[1]]); 
+   
+  #  Computes estimated outliers
+  estan2=is_in_gr(Y, cutoff=1-1e-3,theta.mu=theta.mu,theta.sigma=theta.sigma)
   
+  #  Computes the quadratic discriminant  
+  valoresDisc2=quad_disc(Y,theta.alpha=theta.alpha,theta.mu=theta.mu,theta.sigma=theta.sigma)
+  
+  #  Computes the indices by taking the maximum by files 
+  indices2=apply(valoresDisc2,1,function(x) which(x==max(x))[1])
+  # sets the outliers to zero 
+  indices2[!estan2]=0
+  
+  mcr_sinOutliers=MCRpermn(cluster1=indices2[indicesTrue!=0],clusterTrue=indicesTrue[indicesTrue!=0],actualk=actualk)$MCR*100
+  mcr_sinOutliers
 }
 
 ############################
 ## Performance measures##### 
 ############################
 performance_measures=function(Y,indicesDGP,thetaNew.alpha,
-                              thetaNew.mu,thetaNew.sigma,actualAlpha,actualSigma,actualMu,nkl=1000,cutoff=1-1e-3){
+                              thetaNew.mu,thetaNew.sigma,
+                              actualAlpha,actualSigma,
+                              actualMu,nkl=1000,cutoff=1-1e-3,
+                              estimated_clusters=estimated_clusters){
   nonOutliers=indicesDGP>0;
   TrueOutliers=indicesDGP==0;
+  actualk=length(thetaNew.alpha); 
+
+  # Kullback- Leibler distance
   kl1=kl(thetaNew.alpha,thetaNew.mu,thetaNew.sigma,
          theta0.alpha=actualAlpha/sum(actualAlpha),theta0.mu=actualMu,theta0.sigma=actualSigma,n=nkl)
-  mcr1=mcr(Y,thetaNew.alpha,thetaNew.mu,thetaNew.sigma,actualAlpha,actualMu,actualSigma)
+  
+  ####################################################### #####
+  ## MCR case I: based on parameters estimation \mu,\sigma,\alpha #####
+  #############################################################
+  
+  # mcrComun: computes the misclassification Rate by estimating the labels according 
+  # the closest centers of each group. 
+  
   mcr1c=mcrComun(Y,thetaNew.alpha,thetaNew.mu,thetaNew.sigma,actualMu=actualMu,indicesTrue =indicesDGP)
+  
+  # mcragregando00: computes the misclassification Rate by permuting 
+  # all the labels, and then takes 
+  # the minumun among each case. The sufix agregando00  means that outliers are 
+  # added as a new cluster with label equal to zero 
+  
   mcr1_agregando00=mcr_agregando0(Y,thetaNew.alpha,thetaNew.mu,thetaNew.sigma,
                                   actualMu=actualMu,indicesTrue =indicesDGP)
+
+  # mcragregando00: computes the misclassification Rate by estimating permuting 
+  # all the labels, and then takes 
+  # the minumun among each case. The sufix sinOutliers2021 means that outliers are not 
+  # considered as a group, so that the comparison is taken only in the regular observations.
+  
+  mcr_sinOutliers2021=mcr_sinOutliers(Y,thetaNew.alpha,thetaNew.mu,thetaNew.sigma,
+                                      actualMu=actualMu,indicesTrue =indicesDGP)
+  
+  
+  
+  ####################################################### #####
+  ## MCR case II: based on estimation of clusters label as ### 
+  ####it is given by the packages          ####################
+  #############################################################
+  
+  
+  mcrOutputsClusters=MCRpermn(cluster1=estimated_clusters[indicesDGP!=0],
+                              clusterTrue=indicesDGP[indicesDGP!=0],
+                              actualk=actualk)$MCR*100
+  ########################
+  ########################
+  RandIndex=mclust::adjustedRandIndex(estimated_clusters[indicesDGP!=0],indicesDGP[indicesDGP!=0])
+  
+  ######################
+  ######################
+  
+  
+  ##############################################
+  ####### Specificity and Sensitivity ##########
+  #############################################
+  
   outliers1=!is_in_gr(Y, cutoff=cutoff,theta.mu=thetaNew.mu,theta.sigma=thetaNew.sigma);
   specificity1=sum(which((!outliers1)) %in% which(nonOutliers))/sum(nonOutliers)
+  
   sensitivity1=sum(which((outliers1))%in% which(TrueOutliers))/sum(TrueOutliers)
-  ret1=list(kl=kl1,mcrMalo=mcr1,mcrSinCero=mcr1c,mcr=mcr1_agregando00,specificity=specificity1,sensitivity=sensitivity1,
-            thetaNew.alpha=thetaNew.alpha, thetaNew.mu=thetaNew.mu,thetaNew.sigma=thetaNew.sigma)
+  
+  ret1=list(kl=kl1, mcrSinCero2021=mcr_sinOutliers2021,
+            mcrSinCero=mcr1c, # this is computed from parameters Sigma, mu alpha, only over regular true observation 
+            mcr=mcr1_agregando00,# this is computed from parameters Sigma, mu alpha, including true outliers as clusters
+            mcrOutputsClusters=mcrOutputsClusters, #this is computed from outputs programs only over regular true observation 
+            specificity=specificity1,
+            sensitivity=sensitivity1,
+            thetaNew.alpha=thetaNew.alpha, 
+            RandIndex=RandIndex,
+            thetaNew.mu=thetaNew.mu,thetaNew.sigma=thetaNew.sigma)
   ret1
 }
 
@@ -89,20 +166,24 @@ performance_measures=function(Y,indicesDGP,thetaNew.alpha,
 
 gaux_kl= function(X, theta.alpha,theta.mu,theta.sigma,theta0.alpha,theta0.mu,theta0.sigma){
   FX=0; GX=0;  
-  # hago 2 for separados  por si tienen distinto numero de componentes. 
+  # Consider 2 cases, just to avoid computational errors when the number of mixture 
+  # components are different. 
   for (j in 1:length(theta.alpha)){
-    GX= GX + theta.alpha[j]*dmvnorm(as.matrix(X),mean=theta.mu[[j]],sigma=as.matrix(theta.sigma[[j]]))
+    GX= GX + theta.alpha[j]*mvtnorm::dmvnorm(as.matrix(X),mean=theta.mu[[j]],sigma=as.matrix(theta.sigma[[j]]))
   }
   for (j in 1:length(theta0.alpha)){
-    FX= FX + theta0.alpha[j]*dmvnorm(as.matrix(X),mean=theta0.mu[[j]], sigma=as.matrix(theta0.sigma[[j]]))
+    FX= FX + theta0.alpha[j]*mvtnorm::dmvnorm(as.matrix(X),mean=theta0.mu[[j]], sigma=as.matrix(theta0.sigma[[j]]))
   }
   ret = log(FX/GX)
 }
 
 kl= function(theta.alpha,theta.mu,theta.sigma,
              theta0.alpha,theta0.mu,theta0.sigma,n=1000){
-  #   Kl \int f(x) * ln(f(x)/g(x)) dx = E_{f(x)}{ ln(g(x)/f(x))}
-  Xr=generarMixture(n,theta0.alpha,theta0.mu,theta0.sigma); 
+  # As there are no exact formula for computing K-L when K>2, this function 
+  # computes the K-L divergence by a Monte Carlo simulation, where n is the size of 
+  # the Monte Carlo sample 
+  #   Kl= \int f(x) * ln(f(x)/g(x)) dx = E_{f(x)}{ ln(g(x)/f(x))}
+  Xr=generate_mixture_clean(n,theta0.alpha,theta0.mu,theta0.sigma); 
   logg=gaux_kl(Xr, theta.alpha,theta.mu,theta.sigma,theta0.alpha,theta0.mu,theta0.sigma)
   kl=mean(logg); vv=var(logg)
   c(kl,kl-2*sqrt(vv/n),kl+2*sqrt(vv/n))
@@ -122,8 +203,6 @@ dist2 <- function(x, y){
   # options.
   #  Copyright (C) 2005 Friedrich Leisch
   #  $Id: distances.R 3 2013-06-12 10:06:43Z leisch $
-  #
-  
   if(ncol(x)!=ncol(y))
     stop(sQuote("x")," and ",sQuote("y"),
          " must have the same number of columns")
@@ -136,14 +215,9 @@ dist2 <- function(x, y){
 
 
 MCRpermn=function(cluster1,clusterTrue,actualk){    
-  # function that minimizes the misclassification rate 
-  # among all labels  for cluster1, being "ClusterTrue" 
-  # the variable which contains the true labels.  library(combinat)
-  # cluster1=1:5
-  # clusterTrue=1:5
-  # actualk=5  
-  
-  library(combinat)
+  # computes the misclassification Rate (a number between 0 and 1, Not percentage) by considering all 
+  #permutations for the cluster-labels, and then takes 
+  # the minumun among all cases. 
   permutaciones= permn(1:actualk); 
   h=1;
   valorMCR=rep(0,length(permutaciones))
@@ -206,8 +280,8 @@ HausdorffPermutation=function(theta1matrix,theta2matrix){
   }
   minimoLocal[actualk]=distij;
   # Defino la permutacion. 
-  for (l in 1:actualk){
-    permutation[l,]=which(distij0==minimoLocal[l], arr.ind = T)
+  for (ll in 1:actualk){
+    permutation[ll,]=which(distij0==minimoLocal[ll], arr.ind = T)[1,]
   }
   
   if (drawing==TRUE){
@@ -293,7 +367,7 @@ generarMixture=function(n,theta.alpha,theta.mu,theta.sigma,devolverIndices=FALSE
   Y=c();ns=n*theta.alpha; ns[ns!=floor(ns)]=ns[ns!=floor(ns)] +1;indicesDGP=c()
   for (j in 1:length(theta.alpha)){
     #rmvnorm(x, mean = rep(0, p), sigma = diag(p), log = FALSE)
-    YN=rmvnorm(floor(ns[j]),mean=theta.mu[[j]],sigma=theta.sigma[[j]])
+    YN=mvtnorm::rmvnorm(floor(ns[j]),mean=theta.mu[[j]],sigma=theta.sigma[[j]])
     Y= rbind(Y,YN)
     indicesDGP=c(indicesDGP,rep(j,ns[j]))
   }
