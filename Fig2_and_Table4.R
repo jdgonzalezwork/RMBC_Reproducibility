@@ -103,8 +103,8 @@ nonOutliersEstimadosRMBC=is_in_gr(Y = Y,theta.mu =  resultRMBC$mu,
 ##########################################
 
 tamOtrimle=salot$size[2:(K+1)]
-alphaOtrimleOLD=tamOtrimle/sum(tamOtrimle)
-alphaOtrimle=salot$pi[2:(K+1)]
+alphaOtrimle=tamOtrimle/sum(tamOtrimle)
+alphaOtrimleOLD=salot$pi[2:(K+1)]
 thetaNewOtrimle.alpha=rep(0,K);
 thetaNewOtrimle.mu=vector(mode="list", length=K)
 thetaNewOtrimle.sigma=vector(mode="list", length=K)

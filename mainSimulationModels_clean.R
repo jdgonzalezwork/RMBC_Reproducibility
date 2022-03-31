@@ -78,7 +78,14 @@ load(nom)
 ################## TABLE BUILDING  ######################
 ###########################################################
 
+packages=c("dplyr","gt","tidyr");
+for (i in 1:length(packages)){
+  if (packages[i] %in% rownames(installed.packages())==FALSE){
+    install.packages(packages[i])}
+  require(packages[i], character.only = TRUE)
+}
 
+library(dplyr)
 
 if ("dplyr" %in% rownames(installed.packages())==FALSE){ 
   install.packages("dplyr")}
