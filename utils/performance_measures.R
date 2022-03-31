@@ -79,7 +79,7 @@ mcr_sinOutliers=function(Y,theta.alpha,theta.mu,theta.sigma,actualMu,indicesTrue
 ############################
 ## Performance measures##### 
 ############################
-performance_measures=function(Y,indicesDGP,thetaNew.alpha,
+performance_measures_OLD=function(Y,indicesDGP,thetaNew.alpha,
                               thetaNew.mu,thetaNew.sigma,
                               actualAlpha,actualSigma,
                               actualMu,nkl=1000,cutoff=1-1e-3,
@@ -140,10 +140,18 @@ performance_measures=function(Y,indicesDGP,thetaNew.alpha,
   ####### Specificity and Sensitivity ##########
   #############################################
   
-  outliers1=!is_in_gr(Y, cutoff=cutoff,theta.mu=thetaNew.mu,theta.sigma=thetaNew.sigma);
+  outliers1=!is_in_gr(Y, cutoff=cutoff,theta.mu=thetaNew.mu,
+                      theta.sigma=thetaNew.sigma);
+  
   specificity1=sum(which((!outliers1)) %in% which(nonOutliers))/sum(nonOutliers)
   
   sensitivity1=sum(which((outliers1))%in% which(TrueOutliers))/sum(TrueOutliers)
+  ### Add some performance measures for the referee. 
+  wrongly_detected_outliers=sum(which((outliers1))%in% which(nonOutliers))
+  
+  wrongly_detected_outliers_over_detected_outliers=wrongly_detected_outliers/sum(outliers1)
+  
+  wrongly_detected_outliers_over_true_outliers=wrongly_detected_outliers/sum(TrueOutliers)
   
   ret1=list(kl=kl1, mcrSinCero2021=mcr_sinOutliers2021,
             mcrSinCero=mcr1c, # this is computed from parameters Sigma, mu alpha, only over regular true observation 
@@ -153,9 +161,103 @@ performance_measures=function(Y,indicesDGP,thetaNew.alpha,
             sensitivity=sensitivity1,
             thetaNew.alpha=thetaNew.alpha, 
             RandIndex=RandIndex,
-            thetaNew.mu=thetaNew.mu,thetaNew.sigma=thetaNew.sigma)
+            thetaNew.mu=thetaNew.mu,thetaNew.sigma=thetaNew.sigma,
+            wrongly_detected_outliers_over_detected_outliers=wrongly_detected_outliers_over_detected_outliers,
+            wrongly_detected_outliers_over_true_outliers=wrongly_detected_outliers_over_true_outliers 
+            )
   ret1
 }
+
+
+
+performance_measures=function(Y,indicesDGP,thetaNew.alpha,
+                                  thetaNew.mu,thetaNew.sigma,
+                                  actualAlpha,actualSigma,
+                                  actualMu,nkl=1000,cutoff=1-1e-3,
+                                  estimated_clusters=estimated_clusters){
+  nonOutliers=indicesDGP>0;
+  TrueOutliers=indicesDGP==0;
+  actualk=length(thetaNew.alpha); 
+  
+  # Kullback- Leibler distance
+  kl1=kl(thetaNew.alpha,thetaNew.mu,thetaNew.sigma,
+         theta0.alpha=actualAlpha/sum(actualAlpha),theta0.mu=actualMu,theta0.sigma=actualSigma,n=nkl)
+  
+  ####################################################### #####
+  ## MCR case I: based on parameters estimation \mu,\sigma,\alpha #####
+  #############################################################
+  
+  # mcrComun: computes the misclassification Rate by estimating the labels according 
+  # the closest centers of each group. 
+  
+  mcr1c=mcrComun(Y,thetaNew.alpha,thetaNew.mu,thetaNew.sigma,actualMu=actualMu,indicesTrue =indicesDGP)
+  
+  # mcragregando00: computes the misclassification Rate by permuting 
+  # all the labels, and then takes 
+  # the minumun among each case. The sufix agregando00  means that outliers are 
+  # added as a new cluster with label equal to zero 
+  
+  mcr1_agregando00=mcr_agregando0(Y,thetaNew.alpha,thetaNew.mu,thetaNew.sigma,
+                                  actualMu=actualMu,indicesTrue =indicesDGP)
+  
+  # mcragregando00: computes the misclassification Rate by estimating permuting 
+  # all the labels, and then takes 
+  # the minumun among each case. The sufix sinOutliers2021 means that outliers are not 
+  # considered as a group, so that the comparison is taken only in the regular observations.
+  
+  mcr_sinOutliers2021=mcr_sinOutliers(Y,thetaNew.alpha,thetaNew.mu,thetaNew.sigma,
+                                      actualMu=actualMu,indicesTrue =indicesDGP)
+  
+  
+  
+  ####################################################### #####
+  ## MCR case II: based on estimation of clusters label as ### 
+  ####it is given by the packages          ####################
+  #############################################################
+  
+  
+  mcrOutputsClusters=MCRpermn(cluster1=estimated_clusters[indicesDGP!=0],
+                              clusterTrue=indicesDGP[indicesDGP!=0],
+                              actualk=actualk)$MCR*100
+  ########################
+  ########################
+  RandIndex=mclust::adjustedRandIndex(estimated_clusters[indicesDGP!=0],indicesDGP[indicesDGP!=0])
+  
+  ######################
+  ######################
+  
+  
+  ##############################################
+  ####### Specificity and Sensitivity ##########
+  #############################################
+  
+  outliers1=!is_in_gr(Y, cutoff=cutoff,theta.mu=thetaNew.mu,theta.sigma=thetaNew.sigma);
+  specificity1=sum(which((!outliers1)) %in% which(nonOutliers))/sum(nonOutliers)
+  
+  sensitivity1=sum(which((outliers1))%in% which(TrueOutliers))/sum(TrueOutliers)
+  ### Add some performance measures for the referee. 
+  wrongly_detected_outliers=sum(which((outliers1))%in% which(nonOutliers))
+  
+  wrongly_detected_outliers_over_detected_outliers=wrongly_detected_outliers/sum(outliers1)
+  
+  wrongly_detected_outliers_over_true_outliers=wrongly_detected_outliers/sum(TrueOutliers)
+  
+  ret1=list(kl=kl1, mcrSinCero2021=mcr_sinOutliers2021,
+            mcrSinCero=mcr1c, # this is computed from parameters Sigma, mu alpha, only over regular true observation 
+            mcr=mcr1_agregando00,# this is computed from parameters Sigma, mu alpha, including true outliers as clusters
+            mcrOutputsClusters=mcrOutputsClusters, #this is computed from outputs programs only over regular true observation 
+            specificity=specificity1,
+            sensitivity=sensitivity1,
+            thetaNew.alpha=thetaNew.alpha, 
+            RandIndex=RandIndex,
+            thetaNew.mu=thetaNew.mu,thetaNew.sigma=thetaNew.sigma,
+            wrongly_detected_outliers_over_detected_outliers=wrongly_detected_outliers_over_detected_outliers,
+            wrongly_detected_outliers_over_true_outliers=wrongly_detected_outliers_over_true_outliers 
+  )
+  ret1
+}
+
+
 
 
 ######################################
