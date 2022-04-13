@@ -14,7 +14,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Summary
 
-This document is for reproducing the analysis on real data and simulations of the article
+This  document is for reproducing the analysis on real data and simulations of the article
 _Robust Model-Based_ Clustering whose authors are Juan D. Gonzalez, [Ricardo Maronna](https://scholar.google.com/citations?user=Cqa77SYAAAAJ&hl=en), 
 [Victor J. Yohai](https://scholar.google.com/citations?user=fBUfRqcAAAAJ&hl=en), and [Ruben H. Zamar](https://scholar.google.ca/citations?user=XgRp4HUAAAAJ&hl=en). 
 
